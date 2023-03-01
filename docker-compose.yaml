@@ -1,0 +1,63 @@
+version: "3.9"
+services:
+  db:
+    container_name: local_pgdb
+    image: postgres:13.3
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - "./postgres/db/:/var/lib/postgresql/data"
+      - "./postgres/logs/:/var/log/postgresql"
+    ports:
+      - "5432:5432"
+    command:
+      [
+        "postgres",
+        "-c", "log_destination=stderr",
+        "-c", "logging_collector=on",
+        "-c", "log_directory=/var/log/postgresql",
+        "-c", "log_statement=all"
+      ]
+    networks:
+      - "postgres"
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:5.7
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "vladislav.filatov.92@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "postgres"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+#    volumes:
+#      - "./pgadmin:/var/lib/pgadmin"
+    ports:
+      - "5051:80"
+#    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - "postgres"
+
+#  app:
+#    container_name: flask_app
+#    build:
+#      context: app
+#    stop_signal: SIGKILL
+#    depends_on:
+#      - "db"
+#    ports:
+#      - "5000:5000"
+#    logging:
+#      options:
+#        tag: gunicorn.access
+#    networks:
+#      - "postgres"
+
+networks:
+  postgres:
+    driver: bridge
